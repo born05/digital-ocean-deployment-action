@@ -1,6 +1,24 @@
 name: Deploy to DigitalOcean
 description: Build docker images and push to the DigitalOcean registry
 
+inputs:
+  digital-ocean-access-token:
+    description: 'The DIGITALOCEAN_API_TOKEN secret'
+    required: true
+  gsap-npm-token:
+    description: 'The GSAP_NPM_TOKEN secret'
+    required: true
+  gh-registry-packages:
+    description: 'The GH_REGISTRY_PACKAGES secret'
+    required: true
+  node-version:
+    description: 'The node version to install the node modules with'
+    required: false
+    default: 21.x
+  cms:
+    description: 'Wether or not the project contains a CMS'
+    required: false
+
 runs:
   using: composite
   steps:
