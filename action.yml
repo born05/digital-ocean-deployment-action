@@ -19,7 +19,6 @@ runs:
       run: doctl registry login
 
     - name: Build app
-      if: ${{ contains('app', inputs.containers || []) }}
       shell: bash
       env:
         APP_IMAGE: registry.digitalocean.com/${{ github.repository }}:app-${{ github.ref_type == 'tag' && github.ref_name || 'latest' }}
@@ -33,7 +32,7 @@ runs:
         docker push $APP_IMAGE
 
     - name: Build cms
-      if: ${{ contains('cms', inputs.containers || []) }}
+      if: ${{ inputs.cms }}
       shell: bash
       env:
         CMS_IMAGE: registry.digitalocean.com/${{ github.repository }}:cms-${{ github.ref_type == 'tag' && github.ref_name || 'latest' }}
@@ -42,7 +41,7 @@ runs:
         docker push $CMS_IMAGE
 
     - name: Build cms-cli
-      if: ${{ contains('cms-cli', inputs.containers || []) }}
+      if: ${{ inputs.cms }}
       shell: bash
       env:
         CMS_CLI_IMAGE: registry.digitalocean.com/${{ github.repository }}:cms-cli-${{ github.ref_type == 'tag' && github.ref_name || 'latest' }}
