@@ -67,11 +67,6 @@ runs:
         docker build -f ./cms/cli.Dockerfile -t $CMS_CLI_IMAGE ./cms
         docker push $CMS_CLI_IMAGE
 
-    - name: Start garbage collection
-      continue-on-error: true
-      shell: bash
-      run: doctl registry garbage-collection start --force --include-untagged-manifests
-
     - name: Update DigitalOcean App tags
       if: github.ref_type == 'tag'
       shell: bash
