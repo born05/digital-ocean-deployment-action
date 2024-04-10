@@ -15,7 +15,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: digitalocean/action-doctl@v2
         with:
-          token: ${{ inputs.digital-ocean-access-token }}
+          token: ${{ secrets.DIGITALOCEAN_API_TOKEN }}
       - run: node image-clean-up.js
 
      
