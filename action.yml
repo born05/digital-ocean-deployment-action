@@ -5,10 +5,10 @@ inputs:
   digital-ocean-access-token:
     description: 'The DIGITALOCEAN_API_TOKEN secret'
     required: true
-  gsap-npm-token:
+  greensock-token:
     description: 'The GSAP_NPM_TOKEN secret'
     required: true
-  gh-registry-packages:
+  github-token:
     description: 'The GH_REGISTRY_PACKAGES secret'
     required: true
   node-version:
@@ -40,8 +40,8 @@ runs:
       shell: bash
       env:
         APP_IMAGE: registry.digitalocean.com/${{ github.repository }}:app-${{ github.ref_type == 'tag' && github.ref_name || 'latest' }}
-        GSAP_NPM_TOKEN: ${{ inputs.gsap-npm-token }}
-        GITHUB_TOKEN: ${{ inputs.gh-registry-packages }}
+        GSAP_NPM_TOKEN: ${{ inputs.greensock-token }}
+        GITHUB_TOKEN: ${{ inputs.github-token }}
       run: |
         npm ci --include=dev --prefix ./app
         npm run build --prefix ./app
