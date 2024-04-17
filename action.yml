@@ -5,12 +5,6 @@ inputs:
   digital-ocean-access-token:
     description: 'The DIGITALOCEAN_API_TOKEN secret'
     required: true
-  greensock-token:
-    description: 'The GREENSOCK_TOKEN secret'
-    required: true
-  github-token:
-    description: 'The GITHUB_TOKEN secret'
-    required: true
   node-version:
     description: 'The node version to install the node modules with'
     required: false
@@ -40,8 +34,6 @@ runs:
       shell: bash
       env:
         APP_IMAGE: registry.digitalocean.com/${{ github.repository }}:app-${{ github.ref_type == 'tag' && github.ref_name || 'latest' }}
-        GREENSOCK_TOKEN: ${{ inputs.greensock-token }}
-        GITHUB_TOKEN: ${{ inputs.github-token }}
       run: |
         npm ci --include=dev --prefix ./app
         npm run build --prefix ./app
