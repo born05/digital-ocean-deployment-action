@@ -2,6 +2,9 @@ name: Deploy to DigitalOcean
 description: Build docker images and push to the DigitalOcean registry
 
 inputs:
+  github-token:
+    description: 'Github personal access token with read repo rights'
+    required: true
   digital-ocean-access-token:
     description: 'The DIGITALOCEAN_API_TOKEN secret'
     required: true
@@ -16,11 +19,13 @@ inputs:
 runs:
   using: composite
   steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
+
     - uses: digitalocean/action-doctl@v2
       with:
         token: ${{ inputs.digital-ocean-access-token }}
-    - uses: actions/setup-node@v3
+
+    - uses: actions/setup-node@v4
       with:
         node-version: ${{ inputs.node-version || '21.x' }}
         cache: "npm"
@@ -40,6 +45,17 @@ runs:
         npm prune --omit=dev --prefix ./app
         docker build -t $APP_IMAGE ./app
         docker push $APP_IMAGE
+
+    - name: Install Composer packages
+      if: ${{ inputs.cms }}
+      uses: php-actions/composer@v6
+      env:
+        COMPOSER_AUTH: '{"github-oauth": {"github.com": "${{ inputs.github-token }}"} }'
+      with:
+        dev: no
+        progress: yes
+        working_dir: "cms"
+        args: --ignore-platform-reqs --prefer-dist
 
     - name: Build cms
       if: ${{ inputs.cms }}
