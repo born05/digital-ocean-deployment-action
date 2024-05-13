@@ -46,7 +46,14 @@ runs:
         docker build -t $APP_IMAGE ./app
         docker push $APP_IMAGE
 
-    - name: Install Composer packages
+    - name: Cache Composer dependencies
+      if: ${{ inputs.cms }}
+      uses: actions/cache@v4
+      with:
+        path: /tmp/composer-cache
+        key: composer-${{ hashFiles('**/composer.lock') }}
+
+    - name: Install Composer dependencies
       if: ${{ inputs.cms }}
       uses: php-actions/composer@v6
       env:
