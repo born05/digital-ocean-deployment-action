@@ -6,17 +6,14 @@ on:
     - cron: '0 0 * * *'
 
 jobs:
-  build:
+  cleanup:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - uses: digitalocean/action-doctl@v2
         with:
           token: ${{ secrets.DIGITALOCEAN_API_TOKEN }}
-      
       - name: Clean unused images
         run: node image-clean-up.js
       - name: Clean up untagged manifests
         run: doctl registry garbage-collection start --force --include-untagged-manifests
-
-     

@@ -1,0 +1,127 @@
+name: Deploy to DigitalOcean
+
+on:
+  workflow_call:
+    secrets:
+      GH_PAT_REPOS_PACKAGES_PROJECTS:
+        required: true
+      DIGITALOCEAN_API_TOKEN:
+        required: true
+    inputs:
+      node-version:
+        description: "The node version to install the node modules with"
+        type: string
+        required: false
+        default: 21.x
+      cms:
+        description: "Wether or not the project contains a CMS"
+        type: boolean
+        required: false
+
+jobs:
+  build-app:
+    runs-on: ubuntu-latest
+    env:
+      IMAGE: registry.digitalocean.com/${{ github.repository }}:app-${{ github.ref_type == 'tag' && github.ref_name || 'latest' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DIGITALOCEAN_API_TOKEN }}
+      - name: login to digitalocean registry
+        shell: bash
+        run: doctl registry login
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node-version || '21.x' }}
+          cache: "npm"
+          cache-dependency-path: "./app/package-lock.json"
+      - run: |
+          npm ci --include=dev --prefix ./app
+          npm run build --prefix ./app
+          npm prune --omit=dev --prefix ./app
+      - run: |
+          docker build -t $IMAGE ./app
+          docker push $IMAGE
+
+  install-composer-dependencies:
+    if: ${{ inputs.cms }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Cache Composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: /tmp/composer-cache
+          key: composer-${{ hashFiles('**/composer.lock') }}
+      - name: Install Composer dependencies
+        uses: php-actions/composer@v6
+        env:
+          COMPOSER_AUTH: '{"github-oauth": {"github.com": "${{ secrets.GH_PAT_REPOS_PACKAGES_PROJECTS }}"} }'
+        with:
+          dev: no
+          progress: yes
+          working_dir: "cms"
+          args: --ignore-platform-reqs --prefer-dist
+      - uses: actions/upload-artifact@v4
+        with:
+          name: vendor
+          path: ./cms/vendor
+
+  build-cms:
+    needs: install-composer-dependencies
+    runs-on: ubuntu-latest
+    env:
+      IMAGE: registry.digitalocean.com/${{ github.repository }}:cms-${{ github.ref_type == 'tag' && github.ref_name || 'latest' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DIGITALOCEAN_API_TOKEN }}
+      - name: login to digitalocean registry
+        shell: bash
+        run: doctl registry login
+      - uses: actions/download-artifact@v4
+        with:
+          name: vendor
+      - run: docker build -t $IMAGE ./cms
+      - run: docker push $IMAGE
+
+  build-cms-cli:
+    needs: install-composer-dependencies
+    runs-on: ubuntu-latest
+    env:
+      IMAGE: registry.digitalocean.com/${{ github.repository }}:cms-cli-${{ github.ref_type == 'tag' && github.ref_name || 'latest' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DIGITALOCEAN_API_TOKEN }}
+      - name: login to digitalocean registry
+        shell: bash
+        run: doctl registry login
+      - uses: actions/download-artifact@v4
+        with:
+          name: vendor
+      - run: docker build -f ./cms/cli.Dockerfile -t $IMAGE ./cms
+      - run: docker push $IMAGE
+
+  deploy:
+    needs: [build-app, build-cms, build-cms-cli]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DIGITALOCEAN_API_TOKEN }}
+      - name: Update DigitalOcean App tags
+        if: github.ref_type == 'tag'
+        run: |
+          repository=$(echo ${{ github.repository }} | sed -E "s/born05\///")-prd
+          app_id=$(doctl apps list | grep $repository | awk '{print $1}')
+          doctl apps spec get $app_id | sed -E "/tag: (cms|cms-cli|app)/ s/[0-9]+.[0-9]+.[0-9]+/${{ github.ref_name }}/" | sed -E "/key: VERSION$/,+2 s/value: .*/value: ${{ github.ref_name }}/" | doctl apps update $app_id --spec=-
+      - name: Create new deployment
+        if: github.ref_name == 'main' || github.ref_name == 'master'
+        run: |
+          repository=$(echo ${{ github.repository }} | sed -E "s/born05\///")-acc
+          app_id=$(doctl apps list | grep $repository | awk '{print $1}')
+          doctl apps create-deployment $app_id
