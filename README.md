@@ -1,6 +1,7 @@
 # Digital Ocean Deployment Action
 
 ## Usage
+create a yaml file in the `.github/workflows` folder als paste the following in it:
 ```yml
 name: Deploy app to DigitalOcean
 run-name: Deploy ${{ github.ref_type == 'tag' && github.ref_name || 'latest' }} to ${{ github.ref_type == 'tag' && 'production' || 'acceptance' }}
