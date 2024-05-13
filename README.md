@@ -2,13 +2,20 @@
 
 ## Usage
 ```yml
-    env:
-      GREENSOCK_TOKEN: ${{ secrets.GREENSOCK_TOKEN }}
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    steps:
-      - uses: born05/digital-ocean-deployment-action@v1
-        with:
-          digital-ocean-access-token: ${{ secrets.DIGITALOCEAN_API_TOKEN }}
-          node-version: 21.x
-          cms: true
+name: Deploy app to DigitalOcean
+run-name: Deploy ${{ github.ref_type == 'tag' && github.ref_name || 'latest' }} to ${{ github.ref_type == 'tag' && 'production' || 'acceptance' }}
+
+on:
+  push:
+    branches: [main]
+    tags: ["*"]
+
+jobs:
+  ext:
+    uses: born05/digital-ocean-deployment-action/.github/workflows/deploy-to-do.yml@main
+    secrets: inherit
+    with:
+      node-version: 21.x
+      cms: true
+
 ```
