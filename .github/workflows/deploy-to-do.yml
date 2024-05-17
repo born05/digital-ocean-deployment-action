@@ -7,6 +7,8 @@ on:
         required: true
       DIGITALOCEAN_API_TOKEN:
         required: true
+      GREENSOCK_TOKEN:
+        required: true
     inputs:
       node-version:
         description: "The node version to install the node modules with"
@@ -23,6 +25,8 @@ jobs:
     runs-on: ubuntu-latest
     env:
       IMAGE: registry.digitalocean.com/${{ github.repository }}:app-${{ github.ref_type == 'tag' && github.ref_name || 'latest' }}
+      GREENSOCK_TOKEN: ${{ secrets.GREENSOCK_TOKEN }}
+      GITHUB_TOKEN: ${{ secrets.GH_PAT_REPOS_PACKAGES_PROJECTS }}
     steps:
       - uses: actions/checkout@v4
       - uses: digitalocean/action-doctl@v2
