@@ -3,7 +3,7 @@ name: Deploy to DigitalOcean
 on:
   workflow_call:
     secrets:
-      GITHUB_TOKEN:
+      GH_PAT_REPOS_PACKAGES_PROJECTS:
         required: true
       DIGITALOCEAN_API_TOKEN:
         required: true
