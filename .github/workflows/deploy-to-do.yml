@@ -3,7 +3,7 @@ name: Deploy to DigitalOcean
 on:
   workflow_call:
     secrets:
-      GH_PAT_REPOS_PACKAGES_PROJECTS:
+      GITHUB_TOKEN:
         required: true
       DIGITALOCEAN_API_TOKEN:
         required: true
@@ -26,7 +26,7 @@ jobs:
     env:
       IMAGE: registry.digitalocean.com/${{ github.repository }}:app-${{ github.ref_type == 'tag' && github.ref_name || 'latest' }}
       GREENSOCK_TOKEN: ${{ secrets.GREENSOCK_TOKEN }}
-      GH_PAT_REPOS_PACKAGES_PROJECTS: ${{ secrets.GH_PAT_REPOS_PACKAGES_PROJECTS }}
+      GITHUB_TOKEN: ${{ secrets.GH_PAT_REPOS_PACKAGES_PROJECTS }}
     steps:
       - uses: actions/checkout@v4
       - uses: digitalocean/action-doctl@v2
@@ -88,6 +88,7 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: vendor
+          path: ./cms
       - run: docker build -t $IMAGE ./cms
       - run: docker push $IMAGE
 
@@ -107,6 +108,7 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: vendor
+          path: ./cms
       - run: docker build -f ./cms/cli.Dockerfile -t $IMAGE ./cms
       - run: docker push $IMAGE
 
