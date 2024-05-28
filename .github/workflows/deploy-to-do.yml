@@ -113,8 +113,6 @@ jobs:
       - run: docker push $IMAGE
 
   deploy:
-    needs: [build-app, build-cms, build-cms-cli]
-    if: always()
     runs-on: ubuntu-latest
     steps:
       - uses: digitalocean/action-doctl@v2
