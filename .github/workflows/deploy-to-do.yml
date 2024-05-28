@@ -112,9 +112,9 @@ jobs:
       - run: docker build -f ./cms/cli.Dockerfile -t $IMAGE ./cms
       - run: docker push $IMAGE
 
-  deploy-app-cms-prd:
-    if: ${{ inputs.cms }} && github.ref_type == 'tag'
+  deploy:
     needs: [build-app, build-cms, build-cms-cli]
+    if: ${{ !failure() }}
     runs-on: ubuntu-latest
     steps:
       - uses: digitalocean/action-doctl@v2
@@ -126,45 +126,6 @@ jobs:
           repository=$(echo ${{ github.repository }} | sed -E "s/born05\///")-prd
           app_id=$(doctl apps list | grep $repository | awk '{print $1}')
           doctl apps spec get $app_id | sed -E "/tag: (cms|cms-cli|app)/ s/[0-9]+.[0-9]+.[0-9]+/${{ github.ref_name }}/" | sed -E "/key: VERSION$/,+2 s/value: .*/value: ${{ github.ref_name }}/" | doctl apps update $app_id --spec=-
-  
-  deploy-app-cms-acc:
-    if: ${{ inputs.cms }} && github.ref_name == 'main'
-    needs: [build-app, build-cms, build-cms-cli]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: digitalocean/action-doctl@v2
-        with:
-          token: ${{ secrets.DIGITALOCEAN_API_TOKEN }}
-      - name: Create new deployment
-        if: github.ref_name == 'main' || github.ref_name == 'master'
-        run: |
-          repository=$(echo ${{ github.repository }} | sed -E "s/born05\///")-acc
-          app_id=$(doctl apps list | grep $repository | awk '{print $1}')
-          doctl apps create-deployment $app_id
-  
-  deploy-app-prd:
-    if: ${{ ! inputs.cms }} && github.ref_type == 'tag'
-    needs: build-app
-    runs-on: ubuntu-latest
-    steps:
-      - uses: digitalocean/action-doctl@v2
-        with:
-          token: ${{ secrets.DIGITALOCEAN_API_TOKEN }}
-      - name: Update DigitalOcean App tags
-        if: github.ref_type == 'tag'
-        run: |
-          repository=$(echo ${{ github.repository }} | sed -E "s/born05\///")-prd
-          app_id=$(doctl apps list | grep $repository | awk '{print $1}')
-          doctl apps spec get $app_id | sed -E "/tag: (cms|cms-cli|app)/ s/[0-9]+.[0-9]+.[0-9]+/${{ github.ref_name }}/" | sed -E "/key: VERSION$/,+2 s/value: .*/value: ${{ github.ref_name }}/" | doctl apps update $app_id --spec=-
-  
-  deploy-app-acc:
-    if: ${{ ! inputs.cms }} && github.ref_name == 'main'
-    needs: build-app
-    runs-on: ubuntu-latest
-    steps:
-      - uses: digitalocean/action-doctl@v2
-        with:
-          token: ${{ secrets.DIGITALOCEAN_API_TOKEN }}
       - name: Create new deployment
         if: github.ref_name == 'main' || github.ref_name == 'master'
         run: |
