@@ -125,10 +125,10 @@ jobs:
         run: |
           repository=$(echo ${{ github.repository }} | sed -E "s/born05\///")-prd
           app_id=$(doctl apps list | grep $repository | awk '{print $1}')
-          doctl apps spec get $app_id | sed -E "/tag: (cms|cms-cli|app)/ s/[0-9]+.[0-9]+.[0-9]+/${{ github.ref_name }}/" | sed -E "/key: VERSION$/,+2 s/value: .*/value: ${{ github.ref_name }}/" | doctl apps update $app_id --spec=-
+          if [ -z $app_id ]; then doctl apps spec get $app_id | sed -E "/tag: (cms|cms-cli|app)/ s/[0-9]+.[0-9]+.[0-9]+/${{ github.ref_name }}/" | sed -E "/key: VERSION$/,+2 s/value: .*/value: ${{ github.ref_name }}/" | doctl apps update $app_id --spec=-; fi
       - name: Create new deployment
         if: github.ref_name == 'main' || github.ref_name == 'master'
         run: |
           repository=$(echo ${{ github.repository }} | sed -E "s/born05\///")-acc
           app_id=$(doctl apps list | grep $repository | awk '{print $1}')
-          doctl apps create-deployment $app_id
+          if [ -z $app_id ]; then doctl apps create-deployment $app_id; fi
