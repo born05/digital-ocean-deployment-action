@@ -71,6 +71,7 @@ jobs:
         with:
           name: vendor
           path: ./cms/vendor
+          retention-days: 1
 
   build-cms:
     needs: install-composer-dependencies
