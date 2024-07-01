@@ -132,4 +132,4 @@ jobs:
         run: |
           repository=$(echo ${{ github.repository }} | sed -E "s/born05\///")-acc
           app_id=$(doctl apps list | grep $repository | awk '{print $1}')
-          if [[ $app_id ]]; then doctl apps create-deployment $app_id; fi
+          if [[ $app_id ]]; then doctl apps create-deployment $app_id --force-rebuild; fi
