@@ -41,9 +41,11 @@ jobs:
           cache: "npm"
           cache-dependency-path: "./app/package-lock.json"
       - run: |
-          npm ci --include=dev --prefix ./app
-          npm run build --prefix ./app
-          npm prune --omit=dev --prefix ./app
+          cd ./app
+          npm ci --include=dev
+          npm run build
+          npm prune --omit=dev
+          cd ..
       - run: |
           docker build -t $IMAGE ./app
           docker push $IMAGE
