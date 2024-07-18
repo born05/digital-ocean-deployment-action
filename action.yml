@@ -40,9 +40,9 @@ runs:
       env:
         APP_IMAGE: registry.digitalocean.com/${{ github.repository }}:app-${{ github.ref_type == 'tag' && github.ref_name || 'latest' }}
       run: |
-        npm install --production=false --prefix ./app
+        npm ci --include=dev --prefix ./app
         npm run build --prefix ./app
-        npm ci --prefix ./app
+        npm prune --omit=dev --prefix ./app
         docker build -t $APP_IMAGE ./app
         docker push $APP_IMAGE
 
