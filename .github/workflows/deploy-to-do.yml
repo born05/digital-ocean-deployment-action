@@ -19,6 +19,16 @@ on:
         description: "Wether or not the project contains a CMS"
         type: boolean
         required: false
+      app-dir:
+        description: 'The directory where the app is located (default: ./app)'
+        type: string
+        required: false
+        default: './app'
+      cms-dir:
+        description: 'The directory where the CMS is located (default: ./cms)'
+        type: string
+        required: false
+        default: './cms'
 
 jobs:
   build-app:
@@ -39,7 +49,7 @@ jobs:
         with:
           node-version: ${{ inputs.node-version || '21.x' }}
           cache: "npm"
-          cache-dependency-path: "./app/package-lock.json"
+          cache-dependency-path: "${{ inputs.app-dir || './app' }}/package-lock.json"
       - run: |
           cd ./app
           npm ci --include=dev
@@ -47,7 +57,7 @@ jobs:
           npm prune --omit=dev
           cd ..
       - run: |
-          docker build -t $IMAGE ./app
+          docker build -t $IMAGE ${{ inputs.app-dir || './app' }}
           docker push $IMAGE
 
   install-composer-dependencies:
@@ -72,7 +82,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: vendor
-          path: ./cms/vendor
+          path: ${{ inputs.cms-dir || './cms' }}/vendor
           retention-days: 1
 
   build-cms:
@@ -91,8 +101,8 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: vendor
-          path: ./cms/vendor
-      - run: docker build -t $IMAGE ./cms
+          path: ${{ inputs.cms-dir || './cms' }}/vendor
+      - run: docker build -t $IMAGE ${{ inputs.cms-dir || './cms' }}
       - run: docker push $IMAGE
 
   build-cms-cli:
@@ -111,8 +121,8 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: vendor
-          path: ./cms/vendor
-      - run: docker build -f ./cms/cli.Dockerfile -t $IMAGE ./cms
+          path: ${{ inputs.cms-dir || './cms' }}/vendor
+      - run: docker build -f ${{ inputs.cms-dir || './cms' }}/cli.Dockerfile -t $IMAGE ${{ inputs.cms-dir || './cms' }}
       - run: docker push $IMAGE
 
   deploy:
