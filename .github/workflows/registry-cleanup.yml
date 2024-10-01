@@ -1,7 +1,6 @@
 name: Daily registry cleanup cron
 
 on:
-  workflow_dispatch:
   schedule:
     - cron: '0 0 * * *'
 
