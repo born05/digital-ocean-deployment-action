@@ -37,6 +37,7 @@ jobs:
       IMAGE: registry.digitalocean.com/${{ github.repository }}:app-${{ github.ref_type == 'tag' && github.ref_name || 'latest' }}
       GREENSOCK_TOKEN: ${{ secrets.GREENSOCK_TOKEN }}
       GITHUB_TOKEN: ${{ secrets.GH_PAT_REPOS_PACKAGES_PROJECTS }}
+      VERSION: ${{ github.ref_name }}
     steps:
       - uses: actions/checkout@v4
       - uses: digitalocean/action-doctl@v2
@@ -90,6 +91,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       IMAGE: registry.digitalocean.com/${{ github.repository }}:cms-${{ github.ref_type == 'tag' && github.ref_name || 'latest' }}
+      VERSION: ${{ github.ref_name }}
     steps:
       - uses: actions/checkout@v4
       - uses: digitalocean/action-doctl@v2
@@ -110,6 +112,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       IMAGE: registry.digitalocean.com/${{ github.repository }}:cms-cli-${{ github.ref_type == 'tag' && github.ref_name || 'latest' }}
+      VERSION: ${{ github.ref_name }}
     steps:
       - uses: actions/checkout@v4
       - uses: digitalocean/action-doctl@v2
